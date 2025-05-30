@@ -1,3 +1,13 @@
+#ifndef ROBOT_TURTLES_SANDBOX_TILE_HPP
+#define ROBOT_TURTLES_SANDBOX_TILE_HPP
+
+#include <SFML/Graphics/Texture.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/Sprite.hpp>
+
+#include <glm/vec2.hpp>
+#include <glm/fwd.hpp>
+
 class Tile
 {
   public:
@@ -86,3 +96,5 @@ class Tile
     Color color;
 };
 sf::Texture Tile::texture;
+
+#endif // ROBOT_TURTLES_SANDBOX_TILE_HPP

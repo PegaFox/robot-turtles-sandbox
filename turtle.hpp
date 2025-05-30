@@ -1,3 +1,16 @@
+#ifndef ROBOT_TURTLES_SANDBOX_TURTLE_HPP
+#define ROBOT_TURTLES_SANDBOX_TURTLE_HPP
+
+#include <iostream>
+#include <unordered_map>
+
+#include <SFML/Graphics/RectangleShape.hpp>
+
+#include <glm/geometric.hpp>
+#include <glm/gtx/rotate_vector.hpp>
+
+#include "tile.hpp"
+
 class Turtle: public Tile
 {
   public:
@@ -267,3 +280,5 @@ class Turtle: public Tile
     std::size_t programCounter = 0;
     std::size_t functionCounter = -1;
 };
+
+#endif // ROBOT_TURTLES_SANDBOX_TURTLE_HPP

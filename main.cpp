@@ -6,6 +6,8 @@
 #define USE_PEGAFOX_UTILS_IMPLEMENTATION
 #include <pegafox/utils.hpp>
 
+#include "gui-lib/gui.hpp"
+
 #include <glm/gtx/rotate_vector.hpp>
 
 #include "tile.hpp"
@@ -24,10 +26,10 @@ int main()
   Tile::texture.loadFromFile("../tiles.png");
   Tile::texture.setSmooth(true);
 
-  editorWorld[glm::i16vec2(0, 0)] = std::unique_ptr<Tile>(new Tile(Tile::Gem));
-  editorWorld[glm::i16vec2(-1, 0)] = std::unique_ptr<Tile>(new Tile(Tile::StoneWall));
-  editorWorld[glm::i16vec2(-1, -1)] = std::unique_ptr<Tile>(new Tile(Tile::StoneWall));
-  editorWorld[glm::i16vec2(0, -1)] = std::unique_ptr<Tile>(new Tile(Tile::StoneWall));
+  editorWorld[glm::i16vec2(0, 0)] = std::unique_ptr<Tile>(new Tile(Tile::Gem, Tile::Green));
+  editorWorld[glm::i16vec2(-1, 0)] = std::unique_ptr<Tile>(new Tile(Tile::Gem, Tile::Blue));
+  editorWorld[glm::i16vec2(-1, -1)] = std::unique_ptr<Tile>(new Tile(Tile::Gem, Tile::Pink));
+  editorWorld[glm::i16vec2(0, -1)] = std::unique_ptr<Tile>(new Tile(Tile::Gem, Tile::Red));
 
   sf::VertexArray lines(sf::PrimitiveType::Lines, 2);
   lines[0].color = sf::Color(128, 128, 128+32);
@@ -41,8 +43,31 @@ int main()
 
   Turtle::Instruction currentInstruction = Turtle::Left;
 
-  bool settingsOpen = false;
   bool simulating = false;
+
+  pfui::GUIElement::defaultBackgroundColor = sf::Color::White;
+  pfui::GUIElement::defaultObjectColor = sf::Color(20, 20, 20);
+
+  pfui::Button allowRecursionButton;
+  allowRecursionButton.pos = glm::vec2(-0.8f);
+  allowRecursionButton.size = glm::vec2(0.2f, 0.15f);
+
+  pfui::Button saveQuitButton;
+  saveQuitButton.pos = glm::vec2(-0.1f, 0.8f);
+  saveQuitButton.size = glm::vec2(0.2f, 0.15f);
+
+  pfui::Button hardQuitButton;
+  hardQuitButton.pos = glm::vec2(0.1f, 0.8f);
+  hardQuitButton.size = glm::vec2(0.2f, 0.15f);
+
+  pfui::Paragraph buttonLabels;
+
+  pfui::Window settingsWindow({&allowRecursionButton, &saveQuitButton, &hardQuitButton});
+  settingsWindow.setOpen(false);
+  settingsWindow.size = glm::vec2(0.5f);
+  settingsWindow.hasTitlebar = false;
+  settingsWindow.resizeable = false;
+  settingsWindow.isDraggable = false;
 
   sf::RectangleShape sidebar;
 
@@ -50,7 +75,6 @@ int main()
   sf::Text text(font);
 
   sf::RenderWindow SCREEN(sf::VideoMode::getFullscreenModes()[0], "robot turtles", sf::State::Fullscreen);
-  std::vector<sf::VideoMode> modes = sf::VideoMode::getFullscreenModes();
 
   sf::View cam = SCREEN.getDefaultView();
   cam.move(-cam.getSize()*0.5f);
@@ -61,6 +85,8 @@ int main()
 
     while (std::optional<sf::Event> event = SCREEN.pollEvent())
     {
+      pfui::GUIElement::getEvent(event);
+
       if (event->is<sf::Event::Closed>())
       {
         SCREEN.close();
@@ -201,7 +227,7 @@ int main()
       {
         if (release->code == sf::Keyboard::Key::Escape)
         {
-          settingsOpen = !settingsOpen;
+          settingsWindow.setOpen(!settingsWindow.isOpen());
         }
       }
     }
@@ -209,6 +235,11 @@ int main()
 
     if (SCREEN.hasFocus())
     {
+      if (hardQuitButton.isPressed())
+      {
+        SCREEN.close();
+      }
+
       if (programWorld.empty() && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && sf::Mouse::getPosition(SCREEN).x > Tile::spriteSize*2)
       {
         glm::i16vec2 pos(glm::floor(SCREEN.mapPixelToCoords(sf::Mouse::getPosition(SCREEN)).x / Tile::spriteSize), glm::floor(SCREEN.mapPixelToCoords(sf::Mouse::getPosition(SCREEN)).y / Tile::spriteSize));
@@ -441,12 +472,8 @@ int main()
 
     sidebar.setOutlineThickness(0);
     sidebar.setFillColor(sf::Color::White);
-    if (settingsOpen)
-    {
-      sidebar.setPosition(sf::Vector2f(SCREEN.getSize())*0.5f - sf::Vector2f(200, 200));
-      sidebar.setSize(sf::Vector2f(400, 400));
-      SCREEN.draw(sidebar);
-    }
+
+    settingsWindow.draw(SCREEN);
 
     SCREEN.display();
   }
